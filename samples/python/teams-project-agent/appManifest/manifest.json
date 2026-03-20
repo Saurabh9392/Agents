@@ -1,0 +1,36 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "${MICROSOFT_APP_ID}",
+  "packageName": "com.microsoft.ms365agents.projectagent",
+  "developer": {
+    "name": "Your Name",
+    "websiteUrl": "https://github.com/microsoft/MS365-Agents",
+    "privacyUrl": "https://github.com/microsoft/MS365-Agents/blob/main/LICENSE",
+    "termsOfUseUrl": "https://github.com/microsoft/MS365-Agents/blob/main/LICENSE"
+  },
+  "name": {
+    "short": "Project Agent",
+    "full": "MS365 Agents Project Assistant"
+  },
+  "description": {
+    "short": "AI assistant for the MS365 Agents codebase",
+    "full": "Ask questions about the Microsoft 365 Agents SDK codebase and get AI-powered answers using GLM-4"
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#0078D4",
+  "bots": [
+    {
+      "botId": "${MICROSOFT_APP_ID}",
+      "scopes": ["personal"],
+      "isNotificationOnly": false,
+      "supportsFiles": false
+    }
+  ],
+  "permissions": ["identity"],
+  "validDomains": []
+}
