@@ -1,0 +1,12 @@
+# requirements.txt
+python-dotenv
+aiohttp
+zhipuai
+microsoft-agents-hosting-aiohttp
+microsoft-agents-hosting-core
+microsoft-agents-authentication-msal
+microsoft-agents-activity
+pytest
+pytest-asyncio
+pytest-aiohttp
+pytest-cov
