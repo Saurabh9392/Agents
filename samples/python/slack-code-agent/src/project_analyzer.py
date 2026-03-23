@@ -4,7 +4,6 @@ import os
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-from functools import lru_cache
 
 
 class ProjectAnalyzer:
@@ -25,9 +24,6 @@ class ProjectAnalyzer:
         "dist",
         "*.egg-info",
     }
-
-    # File patterns to exclude
-    EXCLUDE_FILES = {"*.pyc", "*.pyo", "*.egg"}
 
     # Maximum file size to process (in KB)
     MAX_FILE_SIZE_KB: int = 1000
