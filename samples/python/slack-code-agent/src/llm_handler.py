@@ -33,8 +33,6 @@ When answering:
         self.base_url = base_url or os.getenv("MINIMAX_BASE_URL", "https://api.minimax.chat")
         self.model = "MiniMax-Text-01"
         self.max_retries = 3
-        self.rate_limit_per_minute = 20
-        self._last_request_time = 0
 
     def build_messages(self, user_query: str, context: str = "", document_context: str = "") -> List[Dict[str, str]]:
         """Build messages list for API call."""
@@ -52,6 +50,47 @@ When answering:
         ]
 
         return messages
+
+    def _parse_response(self, data: Dict[str, Any]) -> LLMResponse:
+        """Parse response from MiniMax API.
+
+        The MiniMax API returns responses in two main formats:
+        1. Standard chat format: choices[].messages[] - contains message objects with role and content
+           Example: {"choices": [{"messages": [{"role": "assistant", "content": "Hello!"}]}]}
+        2. Text completion format: choices[].text - contains plain text string
+           Example: {"choices": [{"text": "Hello!"}]}
+
+        This method handles both formats and returns an LLMResponse with the parsed text.
+        """
+        choices = data.get("choices", [])
+        if not choices:
+            return LLMResponse(text="No response", tokens_used=0, success=True)
+
+        choice = choices[0]
+        if isinstance(choice, dict):
+            # Format 1: Chat completion with messages array
+            if "messages" in choice:
+                for msg in choice.get("messages", []):
+                    if msg.get("role") == "assistant":
+                        return LLMResponse(
+                            text=msg.get("content", ""),
+                            tokens_used=data.get("usage", {}).get("total_tokens", 0),
+                            success=True
+                        )
+            # Format 2: Text completion with text field
+            if "text" in choice:
+                return LLMResponse(
+                    text=choice["text"],
+                    tokens_used=data.get("usage", {}).get("total_tokens", 0),
+                    success=True
+                )
+
+        # Fallback: try to get text from first choice
+        return LLMResponse(
+            text=choice.get("text", "No response"),
+            tokens_used=data.get("usage", {}).get("total_tokens", 0),
+            success=True
+        )
 
     def generate(self, user_query: str, context: str = "", document_context: str = "") -> LLMResponse:
         """Generate response from MiniMax2.7 API."""
@@ -82,28 +121,7 @@ When answering:
 
                 if response.status_code == 200:
                     data = response.json()
-                    choices = data.get("choices", [])
-                    if choices and len(choices) > 0:
-                        choice = choices[0]
-                        if isinstance(choice, dict) and "messages" in choice:
-                            for msg in choice["messages"]:
-                                if msg.get("role") == "assistant":
-                                    return LLMResponse(
-                                        text=msg.get("content", ""),
-                                        tokens_used=data.get("usage", {}).get("total_tokens", 0),
-                                        success=True
-                                    )
-                        if isinstance(choice, dict) and "text" in choice:
-                            return LLMResponse(
-                                text=choice["text"],
-                                tokens_used=data.get("usage", {}).get("total_tokens", 0),
-                                success=True
-                            )
-                    return LLMResponse(
-                        text=data.get("choices", [{}])[0].get("text", "No response"),
-                        tokens_used=data.get("usage", {}).get("total_tokens", 0),
-                        success=True
-                    )
+                    return self._parse_response(data)
                 elif response.status_code == 429:
                     logger.warning("Rate limited, retrying...")
                     time.sleep(2 ** attempt)
