@@ -11,6 +11,7 @@ def test_config_loads_environment_variables():
         "MINIMAX_API_KEY": "test-minimax-key",
         "PROJECT_ROOT_PATH": "/test/path",
         "KUZU_DB_PATH": "/test/db",
+        "MINIMAX_BASE_URL": "https://custom.api.example.com",
     }):
         # Reload module to pick up patched environment variables
         if "src.config" in sys.modules:
@@ -22,6 +23,7 @@ def test_config_loads_environment_variables():
         assert config.minimax_api_key == "test-minimax-key"
         assert config.project_root_path == "/test/path"
         assert config.kuzu_db_path == "/test/db"
+        assert config.minimax_base_url == "https://custom.api.example.com"
 
 def test_config_defaults():
     """Test default values when env vars not set."""
@@ -34,3 +36,5 @@ def test_config_defaults():
         assert config.ngrok_port == 3000
         assert config.max_context_tokens == 10000
         assert config.kuzu_db_path is None  # Optional
+        assert config.minimax_base_url == "https://api.minimax.chat"
+        assert config.rate_limit_per_minute == 20
