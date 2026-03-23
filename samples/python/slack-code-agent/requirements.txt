@@ -1,0 +1,20 @@
+# Slack Bolt framework
+slack-bolt>=3.18.0
+slack-sdk>=3.21.0
+
+# Async web framework
+aiohttp>=3.9.0
+
+# KuzuDB
+kuzu>=0.4.0
+
+# HTTP client for MiniMax API
+requests>=2.31.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-mock>=3.12.0
