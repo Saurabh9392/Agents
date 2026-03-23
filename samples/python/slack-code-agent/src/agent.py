@@ -27,7 +27,7 @@ class AgentResponse:
     success: bool
     tokens_used: int = 0
     error: Optional[str] = None
-    sources: List[str] = None
+    sources: Optional[List[str]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {

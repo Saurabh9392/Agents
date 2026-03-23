@@ -54,7 +54,8 @@ def test_agent_combines_context_from_both_sources():
     """Test agent combines code and document context."""
     with patch("src.agent.ProjectAnalyzer") as mock_analyzer:
         mock_instance = MagicMock()
-        mock_instance.get_context.return_value = "Code context: def main()"
+        mock_instance.get_context_for_query.return_value = "Code context: def main()"
+        mock_instance.scan_directory.return_value = []
         mock_analyzer.return_value = mock_instance
 
         with patch("src.agent.KuzuClient") as mock_kuzu:
