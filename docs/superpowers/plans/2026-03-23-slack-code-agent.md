@@ -235,9 +235,13 @@ def test_get_context_for_query_finds_relevant_files():
 Run: `pytest samples/python/slack-code-agent/tests/test_project_analyzer.py -v`
 Expected: FAIL - module not found
 
-- [ ] **Step 4: Copy project_analyzer.py**
+- [ ] **Step 4: Copy project_analyzer.py with modifications**
 
-Copy from `samples/python/teams-project-agent/src/project_analyzer.py` to `samples/python/slack-code-agent/src/project_analyzer.py`
+Copy from `samples/python/teams-project-agent/src/project_analyzer.py` to `samples/python/slack-code-agent/src/project_analyzer.py`, then make these changes:
+
+1. Change `_cache_ttl: int = 300` (5 min) → `_cache_ttl: int = 900` (15 min)
+2. Add `MAX_FILE_SIZE_KB: int = 1000` constant
+3. In `get_context_for_query()`, skip files larger than `MAX_FILE_SIZE_KB`
 
 - [ ] **Step 5: Run tests to verify they pass**
 
@@ -668,6 +672,20 @@ def test_agent_returns_error_when_project_not_configured():
                 assert "not configured" in result["text"].lower()
                 assert result["success"] == False
 
+def test_agent_handles_parse_error():
+    """Test agent returns proper error for unrecognized input."""
+    with patch("src.agent.ProjectAnalyzer"):
+        with patch("src.agent.KuzuClient"):
+            with patch("src.agent.LLMHandler"):
+                from src.agent import CodeAgent
+                agent = CodeAgent()
+                agent.config.project_root_path = ""
+
+                # Should return helpful error message
+                result = agent.process_message("")
+
+                assert result["success"] == False
+
 def test_agent_combines_context_from_both_sources():
     """Test agent combines code and document context."""
     with patch("src.agent.ProjectAnalyzer") as mock_analyzer:
@@ -941,8 +959,6 @@ from typing import Optional
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from slack_bolt.adapter.aiohttp import SlackEventsAdapter
-from aiohttp import web
 
 from .config import Config
 from .agent import CodeAgent, AgentResponse
@@ -952,10 +968,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def create_app(config: Optional[Config] = None) -> tuple[App, SocketModeHandler]:
-    """Create and configure the Slack Bolt app."""
+    """Create and configure the Slack Bolt app.
+
+    Signature verification is handled automatically by Bolt framework
+    when signing_secret is provided to App constructor.
+    """
     config = config or Config()
 
-    # Initialize Bolt app
+    # Initialize Bolt app (signing_secret enables request signature verification)
     app = App(
         token=config.slack_bot_token,
         signing_secret=config.slack_signing_secret,
