@@ -66,7 +66,7 @@ class KuzuClient:
 
         try:
             # Placeholder - actual implementation depends on schema
-            result = self._connection.execute("SELECT * FROM documents LIMIT ?", [limit])
+            result = self._connection.execute("SELECT * FROM documents LIMIT $1", [limit])
             documents = []
             for row in result.get_as_dict():
                 documents.append(self._row_to_document(row))
@@ -82,7 +82,7 @@ class KuzuClient:
 
         try:
             result = self._connection.execute(
-                "SELECT * FROM documents WHERE content CONTAINS ? LIMIT 50",
+                "SELECT * FROM documents WHERE content CONTAINS $1 LIMIT 50",
                 [keyword]
             )
             documents = []

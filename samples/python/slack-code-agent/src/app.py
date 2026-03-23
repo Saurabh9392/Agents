@@ -1,5 +1,6 @@
 # src/app.py
 import os
+import re
 import logging
 from typing import Optional
 
@@ -40,13 +41,13 @@ def create_app(config: Optional[Config] = None) -> tuple[App, SocketModeHandler]
             response = agent.process_message(message)
 
             if response.success:
-                say(text=response.text)
+                say({"text": response.text})
             else:
-                say(text=f"I couldn't process that: {response.text}")
+                say({"text": f"I couldn't process that: {response.text}"})
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
-            say(text="Sorry, I encountered an error processing your message.")
+            say({"text": "Sorry, I encountered an error processing your message."})
 
     # App mention handler
     @app.event("app_mention")
@@ -56,18 +57,18 @@ def create_app(config: Optional[Config] = None) -> tuple[App, SocketModeHandler]
 
         try:
             text = event.get("text", "")
-            message = text.replace("<@BOT_USER_ID>", "").strip()
+            message = re.sub(r"<@U\w+>", "", text).strip()
 
             response = agent.process_message(message)
 
             if response.success:
-                say(text=response.text)
+                say({"text": response.text})
             else:
-                say(text=f"I couldn't process that: {response.text}")
+                say({"text": f"I couldn't process that: {response.text}"})
 
         except Exception as e:
             logger.error(f"Error handling app mention: {e}")
-            say(text="Sorry, I encountered an error processing your message.")
+            say({"text": "Sorry, I encountered an error processing your message."})
 
     # Slash command handler
     @app.command("/claude-agent")
@@ -82,13 +83,13 @@ def create_app(config: Optional[Config] = None) -> tuple[App, SocketModeHandler]
             response = agent.process_message(message)
 
             if response.success:
-                respond(text=response.text)
+                respond({"text": response.text})
             else:
-                respond(text=f"I couldn't process that: {response.text}")
+                respond({"text": f"I couldn't process that: {response.text}"})
 
         except Exception as e:
             logger.error(f"Error handling slash command: {e}")
-            respond(text="Sorry, I encountered an error processing your command.")
+            respond({"text": "Sorry, I encountered an error processing your command."})
 
     # Help command
     @app.command("/claude-agent-help")
@@ -113,7 +114,7 @@ Ask me questions about your code projects and documents!
 
 *Note:* Works best with single, specific questions."""
 
-        respond(text=help_text)
+        respond({"text": help_text})
 
     # Create Socket Mode handler
     handler = SocketModeHandler(app)
