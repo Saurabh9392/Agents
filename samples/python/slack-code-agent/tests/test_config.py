@@ -1,0 +1,36 @@
+import os
+import sys
+import importlib
+from unittest.mock import patch
+
+def test_config_loads_environment_variables():
+    """Test that config reads from environment variables."""
+    with patch.dict(os.environ, {
+        "SLACK_BOT_TOKEN": "xoxb-test-token",
+        "SLACK_SIGNING_SECRET": "test-secret",
+        "MINIMAX_API_KEY": "test-minimax-key",
+        "PROJECT_ROOT_PATH": "/test/path",
+        "KUZU_DB_PATH": "/test/db",
+    }):
+        # Reload module to pick up patched environment variables
+        if "src.config" in sys.modules:
+            del sys.modules["src.config"]
+        from src.config import Config
+        config = Config()
+        assert config.slack_bot_token == "xoxb-test-token"
+        assert config.slack_signing_secret == "test-secret"
+        assert config.minimax_api_key == "test-minimax-key"
+        assert config.project_root_path == "/test/path"
+        assert config.kuzu_db_path == "/test/db"
+
+def test_config_defaults():
+    """Test default values when env vars not set."""
+    with patch.dict(os.environ, {}, clear=True):
+        # Reload module to pick up cleared environment variables
+        if "src.config" in sys.modules:
+            del sys.modules["src.config"]
+        from src.config import Config
+        config = Config()
+        assert config.ngrok_port == 3000
+        assert config.max_context_tokens == 10000
+        assert config.kuzu_db_path is None  # Optional
